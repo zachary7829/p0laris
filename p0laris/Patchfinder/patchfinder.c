@@ -701,7 +701,15 @@ uint32_t find_amfi_file_check_mmap(uint32_t region, uint8_t* kdata, size_t ksize
 
 uint32_t find_allproc(uint32_t region, uint8_t* kdata, size_t ksize, char* version) {
 	// XXX: TODO
-	uint32_t allproc = 0x45717c;
+	float version_float = strtof(version, 0);
+	uint32_t allproc; //[[NSArray arrayWithObjects:@"9.3.6",@"9.3.5",@"9.3.4",@"9.3.3",@"9.3.2",@"9.3.1",@"9.3", nil] containsObject:[[UIDevice currentDevice] systemVersion]]
+	if (version_float == (float)9.3) {
+		allproc = 0x45717c;
+	} else if (version_float == (float)9.2){
+		allproc = 0x450128;
+	} else {
+		allproc = 0x458904;
+	}
 	printf("[*] found allproc: 0x%08x\n", allproc);
 	return allproc;
 }
