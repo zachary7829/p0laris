@@ -165,7 +165,7 @@ bool usea4(void) {
 	if ([[NSArray arrayWithObjects:@"9.3.6",@"9.3.5",@"9.3.4",@"9.3.3",@"9.3.2",@"9.3.1",@"9.3", nil] containsObject:[[UIDevice currentDevice] systemVersion]]) {
 		return true;
 	} else {
-		return true;
+		return false;
 	}
 }
 
